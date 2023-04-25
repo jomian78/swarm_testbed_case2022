@@ -1,0 +1,9 @@
+*.pyc
+*notes.md
+data/*
+numerals/*
+.ipynb_checkpoints/*
+*.ipynb
+cleanup.sh
+notes.txt
+*.json

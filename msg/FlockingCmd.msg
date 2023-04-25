@@ -1,0 +1,3 @@
+float32 migration_x
+float32 migration_y
+float32 migration_weight

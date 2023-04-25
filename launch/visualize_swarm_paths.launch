@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- This launch file displays the swarm path in rviz /-->
+
+  <!-- rviz will enable us to see the swarm paths -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ergodic_humanswarmcollab_sim)/rviz/swarm_paths.rviz"
+      required="true" />
+
+</launch>

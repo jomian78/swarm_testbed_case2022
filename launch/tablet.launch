@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="num_agents" default="10" />
+  <arg name="team"       default="red" />
+  <arg name="host"       default="true" />                         <!-- is this the host PC? true/false -->
+  <arg name="other_machine_address" default="localhost"/>          <!-- input the IP address of the PC you are playing against -->
+  <arg name="roshost_name" default="illini76"/>          <!-- input the hostname of host PC-->
+  <arg name="other_machine_workspace" default="swarm_testbed_ws"/>          <!-- input the workspace name for the PC you are playing against -->
+  <arg name="other_user" default="localhost"/>                     <!-- input username of the PC you are playing against -->
+  <arg name="single_player" default="false"/>                      <!-- are we launching a single player training environment? -->
+
+  <group if="$(arg single_player)">
+    <!-- websocket to allow the touchscreen to talk to the host PC -->
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
+    <arg name="unregister_timeout" value="10000" /> <!-- otherwise the websocket won't let the tablet reconnect-->
+    </include>
+
+    <group ns="$(arg team)">
+      <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ergodic_humanswarmcollab_sim)/rviz/swarm_paths.rviz" required="true" />
+    </group>
+
+    <group if="$(eval team == 'red')">
+      <!-- launch red team agents on this machine, blue team agents on the other machine -->
+      <node name="red" pkg="ergodic_humanswarmcollab_sim" type="create_single_player_team.py" output="screen" args="$(arg num_agents) $(arg team)"/> <!-- multiply by 2 b/c of the way the script is setup -->
+    </group>
+    <group unless="$(eval team == 'red')">
+      <!-- launch blue team agents on this machine, red team agents on the other machine -->
+      <node name="blue" pkg="ergodic_humanswarmcollab_sim" type="create_single_player_team.py" output="screen" args="$(arg num_agents) $(arg team)"/> <!-- multiply by 2 b/c of the way the script is setup -->
+    </group>
+
+    <!-- launch agents visualization -->
+    <node name="rendering" pkg="ergodic_humanswarmcollab_sim" type="create_single_player_rendering.py" output="screen" args="$(arg num_agents) $(arg team)"/>
+
+    <!-- create single_player_training_env -->
+    <node name="single_player" pkg="ergodic_humanswarmcollab_sim" type="create_single_player_env.py" output="screen" args="$(arg team)"/>
+  </group>
+
+  <group unless="$(arg single_player)">
+    <!-- <group if="$(arg host)"> -->
+    <!-- 	<!-\- Set the other machine's name -\-> -->
+    <!-- 	<machine name="$(arg other_machine_address)" address="$(arg other_machine_address)" user="$(arg other_user)" env-loader="~/$(arg other_machine_workspace)/src/swarm_testbed/env.sh $(arg other_machine_workspace) $(arg roshost_name)" timeout="60.0"/> -->
+
+	<!-- websocket to allow the touchscreen to talk to the host PC -->
+	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
+	<arg name="unregister_timeout" value="10000" /> <!-- otherwise the websocket won't let the tablet reconnect-->
+	</include>
+
+	<!-- launch rviz under the team namespace (so multiple instances can be launched) to view both teams' swarms in action -->
+	<!-- <group ns="$(arg team)"> -->
+	<!--   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ergodic_humanswarmcollab_sim)/rviz/swarm_paths.rviz" required="true" /> -->
+	<!-- </group> -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find ergodic_humanswarmcollab_sim)/rviz/swarm_paths.rviz" required="true" />
+
+	<!-- <group if="$(eval team == 'red')"> -->
+	<!--   <!-\- launch red team agents on this machine, blue team agents on the other machine -\-> -->
+	<!--   <node name="red" pkg="ergodic_humanswarmcollab_sim" type="create_red_team.py" output="screen" args="$(arg num_agents)"/> -->
+	<!--   <node machine="$(arg other_machine_address)" name="blue" pkg="ergodic_humanswarmcollab_sim" type="create_blue_team.py" output="screen" args="$(arg num_agents)"/> -->
+	<!-- </group> -->
+	<!-- <group unless="$(eval team == 'red')"> -->
+	<!--   <!-\- launch blue team agents on this machine, red team agents on the other machine -\-> -->
+	<!--   <node name="blue" pkg="ergodic_humanswarmcollab_sim" type="create_blue_team.py" output="screen" args="$(arg num_agents)"/> -->
+	<!--   <node machine="$(arg other_machine_address)" name="red" pkg="ergodic_humanswarmcollab_sim" type="create_red_team.py" output="screen" args="$(arg num_agents)"/> -->
+	<!-- <!-\- </group> -\-> -->
+
+	<node name="red" pkg="ergodic_humanswarmcollab_sim" type="create_red_team.py" output="screen" args="10"/>
+	<node name="blue" pkg="ergodic_humanswarmcollab_sim" type="create_blue_team.py" output="screen" args="10"/>
+
+	<!-- launch agents visualization -->
+	<node name="rendering" pkg="ergodic_humanswarmcollab_sim" type="create_agent_rendering.py" output="screen" args="10"/>
+
+	<!-- create game engine -->
+	<node name="game_engine" pkg="ergodic_humanswarmcollab_sim" type="create_game_engine.py" output="screen"/>
+
+      <!-- </group> -->
+
+      <!-- <group unless="$(arg host)"> -->
+      <!-- 	<!-\- rviz will enable us to see the swarm paths -\-> -->
+      <!-- 	<group ns="$(arg team)"> -->
+      <!-- 	  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ergodic_humanswarmcollab_sim)/rviz/swarm_paths.rviz" required="true" /> -->
+      <!-- 	  <!-\- websocket will allow tablet to talk to host -\-> -->
+      <!-- 	  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > -->
+      <!-- 	  <arg name="unregister_timeout" value="10000" /> <!-\- otherise the websocket won't let the tablet reconnect-\-> -->
+      <!-- 	  </include> -->
+      <!-- 	</group> -->
+      <!-- </group> -->
+  </group>
+
+</launch>
